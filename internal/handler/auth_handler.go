@@ -1,12 +1,14 @@
+// internal/handler/auth_handler.go
 package handler
 
 import (
+	"net/http"
+	"strings"
+
 	"gitlab.com/advanced-programing/car-rental-system/internal/domain"
 	"gitlab.com/advanced-programing/car-rental-system/internal/dto"
 	"gitlab.com/advanced-programing/car-rental-system/internal/mapper"
 	"gitlab.com/advanced-programing/car-rental-system/internal/service"
-	"net/http"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -30,13 +32,12 @@ func (h *AuthHandler) Register(c *gin.Context) {
 		return
 	}
 
-	// Determine role based on the admin secret.
+	// Set role based on whether the admin secret is provided.
 	role := domain.RoleCustomer
 	if req.AdminSecret != "" && req.AdminSecret == h.adminSecret {
 		role = domain.RoleAdmin
 	}
 
-	// The authService.Register method should now accept the role.
 	user, err := h.authService.Register(req.Name, req.Email, req.Phone, req.Password, role)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})

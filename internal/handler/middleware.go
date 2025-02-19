@@ -1,3 +1,4 @@
+// internal/handler/middleware.go
 package handler
 
 import (
@@ -6,6 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt"
+	"gitlab.com/advanced-programing/car-rental-system/internal/domain"
 )
 
 func JWTMiddleware(secret string) gin.HandlerFunc {
@@ -18,13 +20,6 @@ func JWTMiddleware(secret string) gin.HandlerFunc {
 		}
 
 		tokenString := strings.TrimPrefix(authHeader, "Bearer ")
-
-		// Check if the token is blacklisted
-		if IsTokenBlacklisted(tokenString) {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "token is blacklisted"})
-			c.Abort()
-			return
-		}
 
 		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
@@ -53,18 +48,31 @@ func JWTMiddleware(secret string) gin.HandlerFunc {
 			return
 		}
 
-		c.Set("userID", int64(userID))
+		role, ok := claims["role"].(string)
+		if !ok {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "role not found in token"})
+			c.Abort()
+			return
+		}
+
+		c.Set("user", domain.User{ID: int64(userID), Role: domain.UserRole(role)})
 		c.Next()
 	}
 }
 
 func AdminMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		role, exists := c.Get("role")
-		if !exists || role != "ADMIN" {
-			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "Admins only"})
+		user, exists := c.Get("user")
+		if !exists {
+			c.AbortWithStatus(http.StatusUnauthorized)
 			return
 		}
+
+		if user.(domain.User).Role != domain.RoleAdmin {
+			c.AbortWithStatus(http.StatusForbidden)
+			return
+		}
+
 		c.Next()
 	}
 }

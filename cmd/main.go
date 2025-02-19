@@ -72,7 +72,7 @@ func main() {
 	}))
 
 	// Update static file serving to absolute path
-	frontendDir := "./frontend/car-rental-frontend/build"
+	frontendDir := "./car-rental-frontend/build"
 	r.Static("/static", filepath.Join(frontendDir, "static"))
 	r.StaticFile("/manifest.json", filepath.Join(frontendDir, "manifest.json"))
 	r.StaticFile("/logo192.png", filepath.Join(frontendDir, "logo192.png"))
@@ -105,6 +105,7 @@ func main() {
 			authorized.POST("/rentals/:id/return", rentalHandler.ReturnCar)
 			authorized.POST("/feedback", feedbackHandler.CreateFeedback)
 			authorized.PUT("/user", userHandler.UpdateUser)
+			authorized.GET("/user", userHandler.GetUser)
 			authorized.DELETE("/feedback/:id", feedbackHandler.DeleteFeedbackClient)
 			authorized.GET("/payments/:id", paymentHandler.GetPayment)
 			authorized.POST("/logout", authHandler.Logout)

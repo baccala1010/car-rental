@@ -1,3 +1,4 @@
+// internal/handler/blacklist_handler.go
 package handler
 
 import (

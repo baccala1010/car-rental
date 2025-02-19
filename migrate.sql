@@ -46,3 +46,5 @@ CREATE TABLE IF NOT EXISTS feedback (
     rating INTEGER NOT NULL,
     description TEXT
     );
+
+truncate table users cascade;

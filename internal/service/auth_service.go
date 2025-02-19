@@ -1,10 +1,12 @@
+// internal/service/auth_service.go
 package service
 
 import (
 	"errors"
+	"time"
+
 	"gitlab.com/advanced-programing/car-rental-system/internal/domain"
 	"gitlab.com/advanced-programing/car-rental-system/internal/repository"
-	"time"
 
 	"github.com/golang-jwt/jwt"
 	"golang.org/x/crypto/bcrypt"
@@ -57,23 +59,25 @@ func (s *authService) Register(name, email, phone, password string, role domain.
 func (s *authService) Login(email, password string) (string, error) {
 	user, err := s.repo.GetUserByEmail(email)
 	if err != nil {
-		return "", errors.New("invalid credentials")
+		return "", err
 	}
+
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 	if err != nil {
-		return "", errors.New("invalid credentials")
+		return "", err
 	}
-	// Generate JWT token
+
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"user_id": user.ID,
 		"role":    user.Role,
-		"exp":     time.Now().Add(72 * time.Hour).Unix(),
+		"exp":     time.Now().Add(time.Hour * 72).Unix(),
 	})
+
 	tokenString, err := token.SignedString([]byte(s.jwtSecret))
 	if err != nil {
 		return "", err
 	}
-	// Send login notification email
+
 	s.emailService.SendEmail(user.Email, "Login Alert", "You have successfully logged in.")
 	return tokenString, nil
 }

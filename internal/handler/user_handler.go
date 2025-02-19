@@ -39,7 +39,7 @@ func (h *UserHandler) GetUser(c *gin.Context) {
 		return
 	}
 
-	user, err := h.userService.GetUserByID(userID.(int))
+	user, err := h.userService.GetUserByID(int(userID.(int64))) // Convert int64 to int
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch user data"})
 		return
